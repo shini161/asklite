@@ -104,6 +104,64 @@ def get_stat_avg(query, cat):
         conn.close()
         
 @tool
+def get_max_stat(query, cat):
+    """Get max [stat] of players <filter>.
+    <filter> is "WHERE [condition]", and is used to filter the players to get the max [stat] of.
+    [stat] can be 'elo', 'wins', 'losses', or 'draws'.
+    query is the input and is "[stat name]\n[sql query string]<filter>" string to get the max [stat]. 
+    Replace [stat name] with the name of the stat you want to get the max of. 
+    Replace [sql query string] with the sql query string to get the max [stat].
+    If no filter is passed replace <filter> with ""
+    """
+
+    try:
+        # Connect to SQLite database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        stat_name = query.split("\n")[0]
+        query = query.split("\n")[1]
+
+        # Execute the SQL query
+        cursor.execute(query)
+        max_elo = cursor.fetchone()[0]
+
+        return f"Return: \"The max {stat_name} of [criteria] is **{max_elo}**\"\nReplace [criteria] with the criteria to get the max {stat_name} of."
+    except Exception as e:
+        return "Error: " + str(e)
+    finally:
+        conn.close()
+        
+@tool
+def get_min_stat(query, cat):
+    """Get min [stat] of players <filter>.
+    <filter> is "WHERE [condition]", and is used to filter the players to get the min [stat] of.
+    [stat] can be 'elo', 'wins', 'losses', or 'draws'.
+    query is the input and is "[stat name]\n[sql query string]<filter>" string to get the min [stat]. 
+    Replace [stat name] with the name of the stat you want to get the min of. 
+    Replace [sql query string] with the sql query string to get the min [stat].
+    If no filter is passed replace <filter> with ""
+    """
+
+    try:
+        # Connect to SQLite database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        stat_name = query.split("\n")[0]
+        query = query.split("\n")[1]
+
+        # Execute the SQL query
+        cursor.execute(query)
+        min_elo = cursor.fetchone()[0]
+
+        return f"Return: \"The min {stat_name} of players [criteria] is **{min_elo}**\"\nReplace [criteria] with the criteria to get the min {stat_name} of."
+    except Exception as e:
+        return "Error: " + str(e)
+    finally:
+        conn.close()
+        
+@tool
 def clear_database(query, cat):
     """Clear the table 'players' in the database.
     query is the input and is the sql query string to clear the table 'players'."""
@@ -122,7 +180,46 @@ def clear_database(query, cat):
         return "Error: " + str(e)
     finally:
         conn.close()
+
+# FIX ME (doesnt get called)
+@tool
+def get_players_by_filter(query, cat):
+    """Get first [count] players by <filter>.
+    Default value for <count> is 10.
+    Max value for [count] is 25.
+    <filter> is "WHERE [condition]", and is used to filter the players to get.
+    query is the input and is "[title]\n[sql query string]<filter>" string to get the players.
+    Replace [title] with "Top [count] players by <filter>" where [count] is the number of players and <filter> is the <filter> to sort by.
+    Replace [sql query string] with the sql query string to get the players.
+    If no filter is passed replace <filter> with ""
+    Table name 'players', fields are name, elo, wins, losses, and draws."""
+    
+    try:
+        # Connect to SQLite database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
         
+        count = query.split("\n")[0]
+        query = query.split("\n")[1]
+
+        # Execute the SQL query
+        cursor.execute(query)
+        players = cursor.fetchall()
+
+        if not players:
+            return "No players found."
+
+        player_list = [count + "\n"]
+        for player in players:
+            player_list.append(f"Name: {player[1]}\nElo: {player[2]}\nWins: {player[3]}\nLosses: {player[4]}\nDraws: {player[5]}\n")
+
+        return player_list
+    except Exception as e:
+        return "Error: " + str(e)
+    finally:
+        conn.close()
+    
+
 @tool
 def get_player_count(query, cat):
     """Get the number of players in the database.
