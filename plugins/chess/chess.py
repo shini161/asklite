@@ -12,9 +12,7 @@ os.makedirs(DB_DIR, exist_ok=True)
 DB_PATH = os.path.join(DB_DIR, "chess.db")
 
 @hook
-def agent_prompt_prefix(prefix, cat):
-    prefix = """You are a SQL query writer. You can add players to a database and retrieve their stats. If there's a tool output, you must return that output."""
-
+def after_cat_bootstrap(cat):
     # Ensure the directory exists (already handled in Docker configuration)
     # Connect to SQLite database (or create it if it doesn't exist)
     conn = sqlite3.connect(DB_PATH)
@@ -40,6 +38,10 @@ def agent_prompt_prefix(prefix, cat):
     # Commit the changes and close the connection
     conn.commit()
     conn.close()
+
+@hook
+def agent_prompt_prefix(prefix, cat):
+    prefix = """You are a SQL query writer. You can add players to a database and retrieve their stats. If there's a tool output, you must return that output."""
 
     return prefix
 
