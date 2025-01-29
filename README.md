@@ -4,7 +4,7 @@ This plugin allows you to register and manage chess players, retrieve statistics
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/shini161/chess-sql-plugin/3e074e53405e20afb973fb85099c14ce257297fa/assets/thumb.webp" 
-       style="height: 256px; width: auto;">
+       style="height: 512px; width: auto;">
 </p>
 
 ## Installation
