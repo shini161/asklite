@@ -1,0 +1,10 @@
+{
+    "name": "Chess SQL Plugin",
+    "version": "0.0.1",
+    "description": "A plugin for Chess that uses SQL database (SQLite) to store, manage, and retrieve data.",
+    "author_name": "shini161",
+    "author_url": "https://github.com/shini161",
+    "plugin_url": "https://github.com/shini161/chess-sql-plugin",
+    "tags": "cat, chess, sqlite, sql, database, testing, test",
+    "thumb": "https://raw.githubusercontent.com/shini161/chess-sql-plugin/main/thumb.webp"
+}
