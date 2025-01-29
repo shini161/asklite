@@ -3,10 +3,8 @@
 This plugin allows you to register and manage chess players, retrieve statistics, and query a SQLite database entirely through AI-generated SQL queries. It serves as a testbed for Cheshire Cat's capabilities in handling structured data efficiently.
 
 <p align="center">
-  <div style="display: inline-block; border-radius: 5%; overflow: hidden;">
-    <img src="https://raw.githubusercontent.com/shini161/chess-sql-plugin/3e074e53405e20afb973fb85099c14ce257297fa/assets/thumb.webp" 
-         style="height: 256px; width: auto;">
-  </div>
+  <img src="https://raw.githubusercontent.com/shini161/chess-sql-plugin/3e074e53405e20afb973fb85099c14ce257297fa/assets/thumb.webp" 
+       style="height: 256px; width: auto;">
 </p>
 
 ## Installation
