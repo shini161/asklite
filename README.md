@@ -7,6 +7,18 @@ This plugin allows you to register and manage chess players, retrieve statistics
        style="height: 512px; width: auto;">
 </p>
 
+## RoadMap
+- [ ] `insert player (@forms)`
+- [ ] `insert players \<count>{default=10} \<randomValues?>{default=true}`
+- [ ] `get player count`
+- [ ] `get player count`
+- [ ] `get average [stat] \<filter>`
+- [ ] `get min [stat] \<filter>`
+- [ ] `get max [stat] \<filter>`
+- [ ] `get players \<filter>`
+- [ ] `clear table`
+- [ ] `remove players <filter>`
+
 ## Installation
 
 1. Clone the repository:
@@ -26,3 +38,10 @@ docker compose up
 
 4. Enable the plugin and enjoy!
 <img src="https://raw.githubusercontent.com/shini161/chess-sql-plugin/3e074e53405e20afb973fb85099c14ce257297fa/assets/enable_plugin_screen.png">
+
+---
+
+## Contributions
+
+- **[shini161](https://github.com/shini161)**
+- **[MatteoGhezza](https://github.com/MatteoGheza)**
