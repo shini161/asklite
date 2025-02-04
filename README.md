@@ -4,7 +4,7 @@ This plugin allows you to query a SQLite database entirely through AI-generated 
 It serves as a testbed for Cheshire Cat's capabilities in handling structured data efficiently.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/shini161/asklite/3e074e53405e20afb973fb85099c14ce257297fa/assets/thumb.webp" 
+  <img src="https://raw.githubusercontent.com/shini161/asklite/f85bef7c53dcf914869c002df92c5530f18d7cdb/assets/thumb.jpeg" 
        style="height: 512px; width: auto;">
 </p>
 
@@ -26,7 +26,7 @@ docker compose up
 ```
 
 4. Enable the plugin and enjoy!
-<img src="https://raw.githubusercontent.com/shini161/asklite/3e074e53405e20afb973fb85099c14ce257297fa/assets/enable_plugin_screen.png">
+<img src="https://raw.githubusercontent.com/shini161/asklite/bd090e4e54c338ea7fd85763aa96725ad422eeae/assets/enable_plugin_screen.png">
 
 ---
 
