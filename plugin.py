@@ -25,22 +25,17 @@ def settings_model():
 def after_cat_bootstrap(cat):
     # Ensure the directory exists (already handled in Docker configuration)
     # Connect to SQLite database (or create it if it doesn't exist)
-    settings = cat.mad_hatter.get_plugin().load_settings()
     
-    global DB_DIR
-    global DB_NAME
-    global DB_PATH
-    global conn
+    _init(cat)
     
-    DB_DIR = settings.get('dir')
-    DB_NAME = f"{settings.get('name')}.sqlite"
-    DB_PATH = os.path.join(DB_DIR, DB_NAME)
+@hook
+def activated(cat):
+    # Ensure the directory exists (already handled in Docker configuration)
+    # Connect to SQLite database (or create it if it doesn't exist)
+    # After plugin is activated
     
-    os.makedirs(DB_DIR, exist_ok=True)
-    
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
- 
-    update_db_structure()
+    _init(cat)
+
     
 @hook
 def agent_prompt_prefix(prefix, cat):
@@ -163,3 +158,34 @@ def execute_multiple_statements(conn, query):
         except sqlite3.Error as e:
             # Raise a custom exception with a detailed error message
             raise DatabaseExecutionError(f"Error executing statement: {statement}\nError: {e}")
+        
+@tool
+def get_settings(query, cat):
+    """Get the current settings for the plugin."""
+    settings = cat.mad_hatter.get_plugin().load_settings()
+    
+    try:
+        return f"Settings:\n{settings}"
+    except Exception as e:
+        return str(e)
+        
+def _init(cat):
+    settings = cat.mad_hatter.get_plugin().load_settings()
+    
+    global DB_DIR
+    global DB_NAME
+    global DB_PATH
+    global conn
+    
+    if (DB_DIR and DB_NAME and DB_PATH and conn):
+        return
+    
+    DB_DIR = settings.get('dir')
+    DB_NAME = f"{settings.get('name')}.sqlite"
+    DB_PATH = os.path.join(DB_DIR, DB_NAME)
+    
+    os.makedirs(DB_DIR, exist_ok=True)
+    
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    
+    update_db_structure()
