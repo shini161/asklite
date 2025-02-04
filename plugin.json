@@ -1,10 +1,10 @@
 {
-    "name": "SQL ASKLite",
+    "name": "ASKLite",
     "version": "0.0.1",
     "description": "A plugin for testing the use of SQLite to store, manage, and retrieve data.",
     "author_name": "shini161",
     "author_url": "https://github.com/shini161",
-    "plugin_url": "https://github.com/shini161/sql-asklite",
+    "plugin_url": "https://github.com/shini161/asklite",
     "tags": "cat, sqlite, sql, database, testing, test, ask, lite, asklite",
-    "thumb": "https://raw.githubusercontent.com/shini161/sql-asklite/d5122d1a4bd7a4336b84fb6a743bae8ad40bc6b3/thumb.webp"
+    "thumb": "https://raw.githubusercontent.com/shini161/asklite/d5122d1a4bd7a4336b84fb6a743bae8ad40bc6b3/thumb.webp"
 }

@@ -14,7 +14,7 @@ class DatabaseExecutionError(Exception):
     pass
 
 class Settings(BaseModel):
-    dir: str = "/app/cat/plugins/sql-asklite/db"  # File path for SQLite
+    dir: str = "/app/cat/plugins/asklite/db"  # File path for SQLite
     name: str = "base"
 
 @plugin
