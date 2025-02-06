@@ -12,6 +12,7 @@ DB_PATH = None
 conn = None
 db_structure = None
 db_structure_last_update_date = None
+table_names_str = None
 
 table_class_map: Dict[str, Any] = {}
 
@@ -45,12 +46,20 @@ def activated(cat):
     
 @hook
 def agent_prompt_prefix(prefix, cat):
+    global db_structure, db_structure_last_update_date, table_names_str
     if datetime.now() - db_structure_last_update_date > timedelta(minutes=1):
         update_db_structure()
     
     prefix = f"""
-    This is current db structure:
+    Database Used: SQLite
+    \n\n
+    Current db structure:
     {db_structure}
+    \n\n
+    {table_names_str}
+    \n\n
+    Table Outputs are to be formatted as markdowns tables.
+    table header row fields must be <span style="background-color: black; color:white">text</span>
     """
 
     return prefix
@@ -62,7 +71,7 @@ def create_table(query, cat):
     global conn
     
     try :
-        execute_multiple_statements(conn, query)
+        execute_multiple_statements(query)
         update_db_structure()
         
         return "**Table created successfully!**\n" + "```sql\n" + query + "\n```"
@@ -77,7 +86,7 @@ def delete_table(query, cat):
     global conn
     
     try :
-        execute_multiple_statements(conn, query)
+        execute_multiple_statements(query)
         update_db_structure()
         
         return "**Table deleted successfully!**\n" + "```sql\n" + query + "\n```"
@@ -96,7 +105,7 @@ def update_table(query, cat):
     global conn
     
     try :   
-        execute_multiple_statements(conn, query)
+        execute_multiple_statements(query)
         update_db_structure()
         
         return "**Table updated successfully!**\n" + "```sql\n" + query + "\n```"
@@ -105,8 +114,8 @@ def update_table(query, cat):
         return str(e)
     
 @tool(return_direct=True)
-def get_db_structure(query, cat):
-    """What's database structure? query is input and is not used, can be ignored, just pass empty string."""
+def get_db_structure(_, cat):
+    """What's database structure?"""
 
     global db_structure
     if db_structure:
@@ -115,11 +124,102 @@ def get_db_structure(query, cat):
         return formatted_structure
     else:
         return "No structure available."
+        
+@tool
+def get_settings(query, cat):
+    """Get the current settings for the plugin."""
+    settings = cat.mad_hatter.get_plugin().load_settings()
+    
+    try:
+        return f"Settings:\n{settings}"
+    except Exception as e:
+        return str(e)
 
+@tool(return_direct=True)
+def insert_data(query, cat):
+    """
+    Insert data to the table. query is the SQL query string to insert data to SQLite.
+    """
+    
+    global conn
+    
+    try :
+        execute_multiple_statements(query)
+        
+        return "**Data inserted successfully!**\n" + "```sql\n" + query + "\n```"
+        
+    except Exception as e:
+        return str(e)
+
+#TODO
+@tool(return_direct=False)
+def get_data_from_db(query, cat):
+    """
+    query is the input and it is the SQL query string to get data from SQLite.
+    """
+    
+    global conn
+    
+    try :
+        
+        cursor = conn.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+        
+        return f"{data}"
+        
+    except Exception as e:
+        return str(e)
+
+#TODO
+@tool(return_direct=True)
+def get_item_count(query, cat):
+    """
+    Get the number of items in a table.
+    query is the input and it is '"the number of items in [table_name] <optional 'where ...'> is:|"[sql query string to get the number of items in the table]'
+    use COUNT(*) to get the number of items in the table.
+    """
+    
+    global conn
+    
+    try :
+        splitted = query.split("|")
+        query = splitted[1]
+        
+        cursor = conn.cursor()
+        cursor.execute(query)
+        data = cursor.fetchone()[0]
+        
+        return f"{splitted[0]} {data}"
+        
+    except Exception as e:
+        return str(e)
+        
+def _init(cat):
+    settings = cat.mad_hatter.get_plugin().load_settings()
+    
+    global DB_DIR
+    global DB_NAME
+    global DB_PATH
+    global conn
+    
+    if (DB_DIR and DB_NAME and DB_PATH and conn):
+        return
+    
+    DB_DIR = settings.get('dir')
+    DB_NAME = f"{settings.get('name')}.sqlite"
+    DB_PATH = os.path.join(DB_DIR, DB_NAME)
+    
+    os.makedirs(DB_DIR, exist_ok=True)
+    
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    
+    update_db_structure()
+    
 
 def update_db_structure():
     """Updates the db_structure and dynamically generates Pydantic models with table_name as the first field."""
-    global db_structure, db_structure_last_update_date, table_class_map, conn
+    global db_structure, db_structure_last_update_date, table_class_map, conn, table_names_str
 
     cursor = conn.cursor()
 
@@ -129,9 +229,11 @@ def update_db_structure():
 
     db_structure = ""
     table_class_map.clear()  # Reset class mappings
+    table_names = []
 
     for table in tables:
         table_name = table[0]
+        table_names.append(table_name)
         cursor.execute(f"PRAGMA table_info({table_name});")
         columns = cursor.fetchall()
         
@@ -166,9 +268,13 @@ def update_db_structure():
         # Store model in dictionary
         table_class_map[table_name] = model
 
+    table_names_str = f"Table names are: {', '.join(table_names)}"
     db_structure_last_update_date = datetime.now()
 
-def execute_multiple_statements(conn, query):
+
+def execute_multiple_statements(query):
+    global conn
+    
     # Split the query at ';' to separate multiple statements
     statements = query.split(';')
     
@@ -185,34 +291,3 @@ def execute_multiple_statements(conn, query):
         except sqlite3.Error as e:
             # Raise a custom exception with a detailed error message
             raise DatabaseExecutionError(f"Error executing statement: {statement}\nError: {e}")
-        
-@tool
-def get_settings(query, cat):
-    """Get the current settings for the plugin."""
-    settings = cat.mad_hatter.get_plugin().load_settings()
-    
-    try:
-        return f"Settings:\n{settings}"
-    except Exception as e:
-        return str(e)
-        
-def _init(cat):
-    settings = cat.mad_hatter.get_plugin().load_settings()
-    
-    global DB_DIR
-    global DB_NAME
-    global DB_PATH
-    global conn
-    
-    if (DB_DIR and DB_NAME and DB_PATH and conn):
-        return
-    
-    DB_DIR = settings.get('dir')
-    DB_NAME = f"{settings.get('name')}.sqlite"
-    DB_PATH = os.path.join(DB_DIR, DB_NAME)
-    
-    os.makedirs(DB_DIR, exist_ok=True)
-    
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    
-    update_db_structure()
