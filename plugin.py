@@ -1,13 +1,19 @@
 from pydantic import BaseModel
 from cat.mad_hatter.decorators import hook, plugin, tool
+from cat.experimental.form import CatForm, CatFormState, form
 import os
 import sqlite3
+from datetime import datetime, timedelta
+from typing import Dict, Any
 
 DB_DIR = None
 DB_NAME = None
 DB_PATH = None
 conn = None
 db_structure = None
+db_structure_last_update_date = None
+
+table_class_map: Dict[str, Any] = {}
 
 class DatabaseExecutionError(Exception):
     """Custom exception for handling database execution errors."""
@@ -39,25 +45,24 @@ def activated(cat):
     
 @hook
 def agent_prompt_prefix(prefix, cat):
+    if datetime.now() - db_structure_last_update_date > timedelta(minutes=1):
+        update_db_structure()
+    
     prefix = f"""
     This is current db structure:
     {db_structure}
     """
 
     return prefix
-    
-
+ 
 @tool(return_direct=True)
-def create_new_table(query, cat):
-    """Query is the input and it is the query to create the table on SQLite."""
+def create_table(query, cat):
+    """Query is the input and it is the queries to create the tables on SQLite."""
     
     global conn
     
     try :
-        cursor = conn.cursor()
-        cursor.execute(query)
-        conn.commit()
-        
+        execute_multiple_statements(conn, query)
         update_db_structure()
         
         return "**Table created successfully!**\n" + "```sql\n" + query + "\n```"
@@ -67,15 +72,12 @@ def create_new_table(query, cat):
     
 @tool(return_direct=True)
 def delete_table(query, cat):
-    """Query is the input and it is the query to delete the table from SQLite."""
+    """Query is the input and it is the queries to delete the tables from SQLite."""
     
     global conn
     
     try :
-        cursor = conn.cursor()
-        cursor.execute(query)
-        conn.commit()
-        
+        execute_multiple_statements(conn, query)
         update_db_structure()
         
         return "**Table deleted successfully!**\n" + "```sql\n" + query + "\n```"
@@ -116,30 +118,55 @@ def get_db_structure(query, cat):
 
 
 def update_db_structure():
-    """Updates the db_structure by fetching the current schema of the database."""
-    global db_structure
-    global conn
-    
+    """Updates the db_structure and dynamically generates Pydantic models with table_name as the first field."""
+    global db_structure, db_structure_last_update_date, table_class_map, conn
+
     cursor = conn.cursor()
 
-    # Fetch the structure of all tables in the database, excluding sqlite_sequence
+    # Fetch the structure of all tables in the database (excluding sqlite_sequence)
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence';")
     tables = cursor.fetchall()
 
     db_structure = ""
+    table_class_map.clear()  # Reset class mappings
+
     for table in tables:
         table_name = table[0]
         cursor.execute(f"PRAGMA table_info({table_name});")
         columns = cursor.fetchall()
         
-        # Add table structure to db_structure
+        # Store the structure
         db_structure += f"{table_name} table:\n"
-        for col in columns:
-            db_structure += f"- {col[1]} ({col[2]})\n"
         
-        # Add a line break between tables
-        db_structure += "\n\n"  # Two line breaks for extra space between tables
+        attributes = {
+            "__annotations__": {"table_name": str}  # Ensure table_name is the first field
+        }
 
+        for col in columns:
+            col_name, col_type = col[1], col[2]
+            db_structure += f"- {col_name} ({col_type})\n"
+            
+            # Convert SQLite types to Python types
+            python_type = (
+                int if "INT" in col_type.upper() else 
+                float if "REAL" in col_type.upper() else 
+                str  # Default to string
+            )
+            attributes["__annotations__"][col_name] = python_type
+
+        db_structure += "\n\n"
+
+        # Create a Pydantic model dynamically
+        model = type(
+            table_name.capitalize(),  # Class name
+            (BaseModel,),  # Inheriting from Pydantic's BaseModel
+            attributes
+        )
+
+        # Store model in dictionary
+        table_class_map[table_name] = model
+
+    db_structure_last_update_date = datetime.now()
 
 def execute_multiple_statements(conn, query):
     # Split the query at ';' to separate multiple statements
