@@ -1,7 +1,7 @@
 {
     "name": "ASKLite",
     "version": "0.0.1",
-    "description": "A plugin for testing the use of SQLite to store, manage, and retrieve data.",
+    "description": "SQLite on Steroids!",
     "author_name": "shini161",
     "author_url": "https://github.com/shini161",
     "plugin_url": "https://github.com/shini161/asklite",

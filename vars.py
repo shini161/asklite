@@ -7,6 +7,6 @@ conn = None
 db_structure = None
 db_structure_last_update_date = None
 table_names_str = None
-show_sql = True
+show_sql = False
 
 table_class_map: Dict[str, Any] = {}

@@ -44,7 +44,6 @@ def agent_prompt_prefix(prefix, cat):
     {vars.table_names_str}
     \n\n
     Table Outputs are to be formatted as markdowns tables.
-    table header row fields must be <span style="background-color: black; color:white">text</span>
     \n\nWhen asked to generate random values, be creative but simple
     \n\nShow SQL query used: {vars.show_sql}
     """
@@ -53,7 +52,7 @@ def agent_prompt_prefix(prefix, cat):
 
 @tool(return_direct=True)
 def toggle_sql(bool, cat):
-    """Show the SQL query used in markdown code block? bool is the input ant it is 'True' or 'False'."""
+    """Show the SQL query used in markdown code block? bool is the input and it is 'True' or 'False'."""
     
     if bool == "True":
         vars.show_sql = True
@@ -65,6 +64,7 @@ def toggle_sql(bool, cat):
 @tool
 def query(query, cat):
     """
+    If a sql procedure needs to use a SELECT, or COUNT, or AVG, MIN, MAX
     Query the database. query is the input and it is the SQL query string to get data from SQLite.
     if the query is SELECT, the output will be formatted as markdown table.
     if the query is INSERT, ignore
@@ -157,7 +157,7 @@ def get_db_structure(_, cat):
 def get_settings(query, cat):
     """Get the current settings for the plugin."""
     settings = cat.mad_hatter.get_plugin().load_settings()
-    
+    2
     try:
         return f"Settings:\n{settings}"
     except Exception as e:
